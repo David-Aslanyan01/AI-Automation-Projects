@@ -1,0 +1,1415 @@
+{
+  "name": "[reducted] _Email_Adjusted export_cv",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -160,
+        592
+      ],
+      "id": "40d88c7e-8ff6-4132-bd0d-f4ab38aa6da4",
+      "name": "When chat message received",
+      "webhookId": "3293332e-82ea-478d-a141-b73b38770453",
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        208,
+        384
+      ],
+      "id": "0050dd9a-1186-490e-8b35-79d3695d746f",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://[reducted].[reducted].co.il:[reducted][reducted api]",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        400,
+        384
+      ],
+      "id": "fdaff5b6-86ef-4c2d-b589-4d74d8ae3a4c",
+      "name": "[reducted] request",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "notesInFlow": true,
+      "disabled": true,
+      "notes": "Initialize a login process. Extract important authentication and session related header values (such as: \"Cf-Ray\" , \"Set-Cookie\") amongst the rest of the headers. Save the data returned (html doc) to extract the \"csrf\" value from it."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "185bd5a8-a11a-4c6d-bfb2-2009b7d1a9ad",
+              "name": "csrf-token",
+              "value": "={{ $json.data.match(/<meta[^>]+name=[\"']csrf-token[\"'][^>]+content=[\"']([^\"']+)[\"']/i)?.[1]?.trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "40aa845e-e798-410d-b2cf-49d7feb57526",
+              "name": "login cookie",
+              "value": "={{ $('[reducted] request').item.json.headers['set-cookie'][0].split('; ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "e2446acd-097c-410b-8318-62fcf423c58b",
+              "name": "data",
+              "value": "={{ $json.data }}.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        384
+      ],
+      "id": "e3374819-79a2-468e-99f5-be44c861b0f2",
+      "name": "Extract csrf-Token",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "327a77a5-f0e0-4c0f-8e37-052b0923ddc7",
+              "name": "param",
+              "value": "={{ $json.body.rows[0][2] }}",
+              "type": "string"
+            },
+            {
+              "id": "fb975be0-64f6-461a-991d-f0076c6d5613",
+              "name": "param",
+              "value": "={{ $('Get Login Cookie + login code').item.json.param }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        1840
+      ],
+      "id": "602aafdb-843b-4754-95e1-d82266098a41",
+      "name": "Extract Order Id"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[reducted].[reducted].co.il:[reducted]/json/[reducted api]",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/javascript, */*; q=0.01"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "X-CSRF-Token",
+              "value": "={{ $('Extract csrf-Token + Cookie').item.json['csrf-token'] }}"
+            },
+            {
+              "name": "Cookie",
+              "value": "={{ $json.param }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "param",
+              "value": "value"
+            },
+            {
+              "name": "param",
+              "value": "value"
+            },
+            {
+              "name": "param",
+              "value": "=01/{{ $if ($today.month<10,\"0\"+$today.month,$today.month) }}/{{$today.year}}"
+            },
+            {
+              "name": "id",
+              "value": "={{ $('When chat message received').item.json.chatInput }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1008,
+        2000
+      ],
+      "id": "e615d259-a268-4499-86bf-2b105004b31c",
+      "name": "Pull Ticket Data (Post)_",
+      "notesInFlow": true,
+      "onError": "continueErrorOutput",
+      "notes": "Given a ticket id (not order id!) POST an HTTP request to get the ticket data (a json response containing order id. The order id will then serve us in sending a \"GET\" Http request for the order details, from which we will obtain the param. param + order id will allow us to cancel the ticket with an Http request to a \"cancel\" endpoint)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[reducted].[reducted].co.il:[reducted][reducted api]",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "param",
+              "value": "={{ $('Extract Order Id').item.json.param }}"
+            },
+            {
+              "name": "param",
+              "value": "={{ $json['param'] }}{{\"\\n\"}}Ticket Canceled By Baked Bot[reducted] :) - {{ $today }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/javascript, */*; q=0.01"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "X-CSRF-Token",
+              "value": "={{ $('Extract csrf-Token + Cookie').item.json['csrf-token'] }}"
+            },
+            {
+              "name": "Cookie",
+              "value": "={{ $json['current cookie'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2144,
+        1984
+      ],
+      "id": "32a75ca8-81c5-478c-b196-d05f110c6863",
+      "name": "Insert Cancel Comment(POST)",
+      "notesInFlow": true,
+      "onError": "continueErrorOutput",
+      "notes": "POST an HTTP request for SMS login"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[reducted].[reducted].co.il:[reducted][reducted api]",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "param",
+              "value": "={{ $json['param'] }}"
+            },
+            {
+              "name": "param",
+              "value": "={{ $('Extract Order Id').item.json.param }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/javascript, */*; q=0.01"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "X-CSRF-Token",
+              "value": "={{ $('Extract csrf-Token + Cookie').item.json['csrf-token'] }}"
+            },
+            {
+              "name": "Cookie",
+              "value": "={{ $json['current cookie'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2848,
+        2016
+      ],
+      "id": "e13b582e-165f-4cc5-ab5c-682df92fc143",
+      "name": "Cancel Cinema Ticket From param(POST)",
+      "notesInFlow": true,
+      "onError": "continueErrorOutput",
+      "notes": "POST an HTTP request for SMS login"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "78e11c68-a8df-4f76-9604-3a1bc50580fd",
+              "name": "=param",
+              "value": "={{ $json['Extract Order Comment String'].split('param=')[1].split('&amp')[0].trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "d253dd2c-8f63-42a0-a833-0d9871156548",
+              "name": "param",
+              "value": "={{ $json['Extract Order Comment String'].split('param=')[1].split('\">')[0].trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "8060cd7b-efd2-4cf5-9678-6a21e277a47e",
+              "name": "current cookie",
+              "value": "={{ $json.headers['set-cookie'][0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        1824
+      ],
+      "id": "23753e5e-9406-4e37-9a29-3f7423737fde",
+      "name": "Substring param"
+    },
+    {
+      "parameters": {
+        "url": "https://[reducted].[reducted].co.il:[reducted][reducted api]",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "={{ $json.param }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/javascript, */*; q=0.01"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "X-CSRF-Token",
+              "value": "={{ $('Extract csrf-Token + Cookie').item.json['csrf-token'] }}"
+            },
+            {
+              "name": "Cookie",
+              "value": "={{ $json.param }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "text",
+              "outputPropertyName": "Extract Order Comment String"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1376,
+        1984
+      ],
+      "id": "795a0d67-7159-4286-88dd-d4076fd6b53c",
+      "name": "Get param and param values (Get)",
+      "notesInFlow": true,
+      "onError": "continueErrorOutput",
+      "notes": "Given an order id; GET an HTTP request to get fetch order data (html doc file). Extract the existing order comment data (if any at all)."
+    },
+    {
+      "parameters": {
+        "url": "https://[reducted].[reducted].co.il:[reducted][reducted api]",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "param",
+              "value": "={{ $('Extract Order Id').item.json.param }}"
+            },
+            {
+              "name": "param",
+              "value": "={{ $json.param }}"
+            },
+            {
+              "name": "param",
+              "value": "={{ $json.param }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/javascript, */*; q=0.01"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "X-CSRF-Token",
+              "value": "={{ $('Extract csrf-Token + Cookie').item.json['csrf-token'] }}"
+            },
+            {
+              "name": "Cookie",
+              "value": "={{ $json['current cookie'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "text",
+              "outputPropertyName": "Extract Order Comment String"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1744,
+        1984
+      ],
+      "id": "21149fbf-ba98-49c3-b072-3b4ce01a458a",
+      "name": "Get Ticket param (Get)",
+      "notesInFlow": true,
+      "onError": "continueErrorOutput",
+      "notes": "Given an order id; GET an HTTP request to get fetch order data (html doc file). Extract the existing order comment data (if any at all)."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "646e5452-1dfc-415b-ac7d-3d270188e307",
+              "name": "current cookie",
+              "value": "={{ $('Extract Order Comment').item.json['current cookie'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2320,
+        1808
+      ],
+      "id": "8333ad4b-9871-4b81-949c-bde06386dcaa",
+      "name": "Extract Update Ticket Message Cookie"
+    },
+    {
+      "parameters": {
+        "url": "https://[reducted].[reducted].co.il:[reducted][reducted api]",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "param",
+              "value": "={{ $('Extract Order Id').item.json.param }}"
+            },
+            {
+              "name": "param",
+              "value": "={{ $json.param }}"
+            },
+            {
+              "name": "param",
+              "value": "={{ $json.param }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/javascript, */*; q=0.01"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "X-CSRF-Token",
+              "value": "={{ $json['csrf-token'] }}"
+            },
+            {
+              "name": "Cookie",
+              "value": "={{ $json['current cookie'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "text",
+              "outputPropertyName": "Extract param String"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2496,
+        2000
+      ],
+      "id": "93a00a61-1ee8-4558-9178-238836d27326",
+      "name": "Get Ticket param (GET)",
+      "notesInFlow": true,
+      "onError": "continueErrorOutput",
+      "notes": "Given an order id; GET an HTTP request to get fetch order data (html doc file). Extract the existing order comment data (if any at all)."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b64da1e6-84b1-432b-8126-258a8d71368d",
+              "name": "param",
+              "value": "={{ $json['Extract param String'].split('param=')[1].split('&amp')[0].trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "841c644d-adb8-40a9-9a32-3a4d57506b11",
+              "name": "current cookie",
+              "value": "={{ $json.headers['set-cookie'][0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2672,
+        1808
+      ],
+      "id": "81bf8eab-cb7e-439f-8e5e-583691dbec21",
+      "name": "Extract param"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1c95da45-6ac5-4439-8f07-39fc8688447b",
+              "name": "param",
+              "value": "={{ $json['Extract Order Comment String'].split('<textarea')[1].split('>')[1].split('<')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "5a98ab07-87cb-4b71-8db3-f870afed1b54",
+              "name": "current cookie",
+              "value": "={{ $json.headers['set-cookie'][0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1936,
+        1808
+      ],
+      "id": "eda51011-f37d-49b1-a998-b81314180faf",
+      "name": "Extract Order Comment"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[reducted].[reducted].co.il:[reducted][reducted api]",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/javascript, */*; q=0.01"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "X-CSRF-Token",
+              "value": "={{ $json['csrf-token'] }}"
+            },
+            {
+              "name": "Cookie",
+              "value": "={{ $json['login cookie'] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "param",
+              "value": "value1"
+            },
+            {
+              "name": "param",
+              "value": "value"
+            },
+            {
+              "name": "param",
+              "value": "vale"
+            },
+            {
+              "name": "param",
+              "value": "value3"
+            },
+            {
+              "name": "param",
+              "value": "value"
+            },
+            {
+              "name": "param",
+              "value": "value"
+            },
+            {
+              "name": "param",
+              "value": "value"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        848,
+        384
+      ],
+      "id": "c3a51958-a0a8-48be-a0eb-380c833f3636",
+      "name": "Make a login with credentials request(POST)",
+      "notesInFlow": true,
+      "alwaysOutputData": true,
+      "disabled": true,
+      "notes": "POST an HTTP request for SMS login\n\nCookie is the cookie returned from the original http call to [reducted api]"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1ed3cae0-8f12-43ac-a9a7-ec52304a579d",
+              "name": "before sms login cookie",
+              "value": "={{ $('Make a login with credentials request(POST)').item.json.headers['set-cookie'][0].split('; ')[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1056,
+        384
+      ],
+      "id": "edb5f31f-5c2e-46ef-b5a9-c7df28f40b27",
+      "name": "Extract Before submit SMS cookie",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Ticket Canceling process. \n[Note Editing Gparame](https://docs.n8n.io/workflows/components/sticky-notes/)",
+        "height": 432,
+        "width": 2144
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        896,
+        1760
+      ],
+      "typeVersion": 1,
+      "id": "cd375a98-9022-43ce-8e56-a7862745a403",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Start Login Process (SMS)\n[Note Editing Gparame](https://docs.n8n.io/workflows/components/sticky-notes/)",
+        "height": 224,
+        "width": 1216
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        16,
+        352
+      ],
+      "typeVersion": 1,
+      "id": "3ed33d50-a49e-4ccc-928e-c04c0a7d6835",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[reducted].[reducted].co.il:[reducted][reducted api]",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/javascript, */*; q=0.01"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "X-CSRF-Token",
+              "value": "={{ $json['csrf-token'] }}"
+            },
+            {
+              "name": "Cookie",
+              "value": "={{ $json['param'] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "[reducted]",
+              "value": "[reducted]"
+            },
+            {
+              "name": "[param]",
+              "value": "/"
+            },
+            {
+              "name": "param",
+              "value": "vale"
+            },
+            {
+              "name": "param",
+              "value": "value"
+            },
+            {
+              "name": "param",
+              "value": "value"
+            },
+            {
+              "name": "param",
+              "value": "value"
+            },
+            {
+              "name": "param",
+              "value": "value"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {}
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        992,
+        848
+      ],
+      "id": "2defad42-0a40-4155-b0cf-357d1cb23099",
+      "name": "login with credentials request(POST)",
+      "notesInFlow": true,
+      "alwaysOutputData": false,
+      "notes": "POST an HTTP request for SMS login\n\nCookie is the cookie returned from the original http call to [reducted api]"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "185bd5a8-a11a-4c6d-bfb2-2009b7d1a9ad",
+              "name": "csrf-token",
+              "value": "={{ $json.data.match(/<meta[^>]+name=[\"']csrf-token[\"'][^>]+content=[\"']([^\"']+)[\"']/i)?.[1]?.trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "40aa845e-e798-410d-b2cf-49d7feb57526",
+              "name": "param",
+              "value": "={{ $('[reducted] request1').item.json.headers['set-cookie'][0].split('; ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "e2446acd-097c-410b-8318-62fcf423c58b",
+              "name": "data",
+              "value": "={{ $json.data }}.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        848
+      ],
+      "id": "1b3e5ca7-6252-4a62-8ecb-066b101d4260",
+      "name": "Extract csrf-Token + Cookie"
+    },
+    {
+      "parameters": {
+        "url": "https://[reducted].[reducted].co.il:[reducted][reducted api]",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        608,
+        848
+      ],
+      "id": "ac8f079a-f757-497b-a753-18c2b24b38b2",
+      "name": "[reducted] request1",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "notesInFlow": true,
+      "notes": "Initialize a login process. Extract important authentication and session related header values (such as: \"Cf-Ray\" , \"Set-Cookie\") amongst the rest of the headers. Save the data returned (html doc) to extract the \"csrf\" value from it."
+    },
+    {
+      "parameters": {
+        "content": "Start Login Process. Submit login http request and call sub-workflow to get 2FA login from gmail and send the code in a login HTTP Request.",
+        "height": 304,
+        "width": 804
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        528,
+        752
+      ],
+      "typeVersion": 1,
+      "id": "f1b4da55-a1db-4530-bd8d-7122f42f2e49",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Add \"Session-Live\" check here\n([reducted])"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        176,
+        720
+      ],
+      "typeVersion": 1,
+      "id": "13d9a0bf-760b-4907-b02d-a5014d151496",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "FH9CpBwWIUrlYHcg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/FH9CpBwWIUrlYHcg",
+          "cachedResultName": "[reducted]_Login_Email_Code"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "csrf-token": "={{ $('Extract csrf-Token + Cookie').item.json['csrf-token'] }}",
+            "param": "={{ $json.param }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "csrf-token",
+              "displayName": "csrf-token",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "param",
+              "displayName": "param",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1456,
+        1120
+      ],
+      "id": "ed7c2e0f-66fd-47cc-8708-0806ef63fb68",
+      "name": "Call '[reducted]_Login_Email_Code'",
+      "alwaysOutputData": false,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "420dffe7-0278-4980-a06e-8181208f4bd4",
+              "name": "param",
+              "value": "={{ $json.headers['set-cookie'][0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        848
+      ],
+      "id": "ca2148f9-5ffc-4276-9f6f-78efd90c3302",
+      "name": "Extract After Start Login Cookie"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4cdf16e4-856c-429a-83c7-1b57745321ed",
+              "name": "login code",
+              "value": "={{ $json['login code'] }}",
+              "type": "string"
+            },
+            {
+              "id": "b5d00f45-4e6d-41b2-9698-2de93af83d9c",
+              "name": "param",
+              "value": "={{ $json.param }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        1520
+      ],
+      "id": "34e1cc66-f420-45fa-a748-929385d3dec0",
+      "name": "Get Login Cookie + login code"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "wSXDC9YdYc2mTRzc",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/wSXDC9YdYc2mTRzc",
+          "cachedResultName": "[reducted]_Logout_SWF"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "current cookie",
+              "displayName": "current cookie",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "csrf-token",
+              "displayName": "csrf-token",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1232,
+        2448
+      ],
+      "id": "21035c8b-8ed8-4be2-b2b9-d41042a37e99",
+      "name": "Call '[reducted]_Logout_SWF'"
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n## Fetch Cookie & Tokens + Update DB \nSends the double authentication verification code sent to the designated email and performs a login operation. Updates the retreived cookie and cf token in the session DB for overall use  across the related workflows.",
+        "height": 384,
+        "width": 400,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1392,
+        912
+      ],
+      "typeVersion": 1,
+      "id": "a6744741-66a9-405f-a6a9-21a10847681f",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## Safety logout sub-workflow \n**Exits the workflow upon incorrect http request to avoid mass silent executions\\continued http failing http requests**",
+        "height": 304,
+        "width": 480,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        2320
+      ],
+      "id": "11d7d1bf-d3a1-4c51-901c-7491eb2787d4",
+      "name": "Sticky Note10"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "[reducted] request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "[reducted] request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[reducted] request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[reducted] request": {
+      "main": [
+        [
+          {
+            "node": "Extract csrf-Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract csrf-Token": {
+      "main": [
+        [
+          {
+            "node": "Make a login with credentials request(POST)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Order Id": {
+      "main": [
+        [
+          {
+            "node": "Get param and param values (Get)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Ticket Data (Post)_": {
+      "main": [
+        [
+          {
+            "node": "Extract Order Id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call '[reducted]_Logout_SWF'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Cancel Comment(POST)": {
+      "main": [
+        [
+          {
+            "node": "Extract Update Ticket Message Cookie",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Cancel Cinema Ticket From param(POST)": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Substring param": {
+      "main": [
+        [
+          {
+            "node": "Get Ticket param (Get)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get param and param values (Get)": {
+      "main": [
+        [
+          {
+            "node": "Substring param",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Get Ticket param (Get)": {
+      "main": [
+        [
+          {
+            "node": "Extract Order Comment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Extract Update Ticket Message Cookie": {
+      "main": [
+        [
+          {
+            "node": "Get Ticket param (GET)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Ticket param (GET)": {
+      "main": [
+        [
+          {
+            "node": "Extract param",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Extract Order Comment": {
+      "main": [
+        [
+          {
+            "node": "Insert Cancel Comment(POST)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract param": {
+      "main": [
+        [
+          {
+            "node": "Cancel Cinema Ticket From param(POST)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make a login with credentials request(POST)": {
+      "main": [
+        [
+          {
+            "node": "Extract Before submit SMS cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Before submit SMS cookie": {
+      "main": [
+        []
+      ]
+    },
+    "Extract csrf-Token + Cookie": {
+      "main": [
+        [
+          {
+            "node": "login with credentials request(POST)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[reducted] request1": {
+      "main": [
+        [
+          {
+            "node": "Extract csrf-Token + Cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "login with credentials request(POST)": {
+      "main": [
+        [
+          {
+            "node": "Extract After Start Login Cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call '[reducted]_Login_Email_Code'": {
+      "main": [
+        [
+          {
+            "node": "Get Login Cookie + login code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract After Start Login Cookie": {
+      "main": [
+        [
+          {
+            "node": "Call '[reducted]_Login_Email_Code'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Login Cookie + login code": {
+      "main": [
+        [
+          {
+            "node": "Pull Ticket Data (Post)_",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "value": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "72b28e2e-0cfb-421c-bea6-1a30cc695c3f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "45e92aec72b68b27b50479895d30b23d145988056a515af00c11c3647f09ea22"
+  },
+  "id": "8Lj3NbrsbKryJurl",
+  "tags": [
+    {
+      "updatedAt": "2026-09-09T18:02:38.011Z",
+      "createdAt": "2026-09-09T18:02:38.011Z",
+      "id": "oqRw60Nlqu5dAAS9",
+      "name": "MainWF_Working"
+    }
+  ]
+}
